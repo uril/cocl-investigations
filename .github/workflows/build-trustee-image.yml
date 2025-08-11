@@ -1,0 +1,48 @@
+name: Build Trustee Container Image
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'configs/trustee/containers/trustee.container'
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    container:              # All steps below will run inside this container
+      image: fedora:latest  # Using the latest Fedora image
+      options: --privileged # Required for Buildah to build images without rootless setup
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Buildah and dependencies in Fedora container
+        run: |
+          dnf update -y
+          dnf install -y buildah git
+          dnf clean all
+
+      - name: Set image name and tag
+        run: |
+          # Fix IMAGE_TAG if other branches are added at the top
+          IMAGE_TAG="latest"
+          IMAGE_NAME="quay.io/confidential-clusters/trustee:${IMAGE_TAG}"
+          # "pass" IMAGE_NAME to the following steps
+          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+          echo "Image name is $IMAGE_NAME"
+
+      - name: Build container image
+        run: |
+          buildah build -t "${{ env.IMAGE_NAME }}" -f configs/trustee/containers/trustee.container .
+
+      - name: Push container image
+        run: |
+          # login to quay.io
+          echo "${{ secrets.REGISTRY_PASSWORD }}" | buildah login --username "${{ secrets.REGISTRY_USERNAME }}" --password-stdin quay.io
+          # push the image
+          buildah push "${{ env.IMAGE_NAME }}"
+          # logout of quay.io
+          buildah logout quay.io
+
