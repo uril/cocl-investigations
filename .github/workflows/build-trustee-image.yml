@@ -39,6 +39,14 @@ jobs:
 
       - name: Push container image
         run: |
+          # skip this step if username or password are not defined
+          if [ "X${{ secrets.REGISTRY_USERNAME }}" == "X" \
+               "X${{ secrets.REGISTRY_PASSWORD }}" == "X" ];
+          then
+              echo "skipping buildah push"
+              exit 0
+          fi
+
           # login to quay.io
           echo "${{ secrets.REGISTRY_PASSWORD }}" | buildah login --username "${{ secrets.REGISTRY_USERNAME }}" --password-stdin quay.io
           # push the image
