@@ -48,8 +48,10 @@ jobs:
       - name: Push container image ${{ matrix.image-name }}
         run: |
           # skip this step if username or password are not defined
-          if [ "X${{ secrets.REGISTRY_USERNAME }}" == "X" \
-               "X${{ secrets.REGISTRY_PASSWORD }}" == "X" ];
+          # skip in forks too
+          if [ "X${{ secrets.REGISTRY_USERNAME }}" == "X" -o \
+               "X${{ secrets.REGISTRY_PASSWORD }}" == "X" -o \
+               "${{ github.repository_owner }}" != "confidential-containers" ];
           then
               echo "skipping buildah push"
               exit 0
