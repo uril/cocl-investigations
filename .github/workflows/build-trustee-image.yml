@@ -1,11 +1,11 @@
-name: Build Trustee Container Image
+name: Build Trustee Container Images
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'configs/trustee/containers/trustee.container'
+      - 'configs/trustee/containers/trustee**'
   workflow_dispatch: # Allows manual triggering of the workflow
 
 jobs:
@@ -14,6 +14,14 @@ jobs:
     container:              # All steps below will run inside this container
       image: fedora:latest  # Using the latest Fedora image
       options: --privileged # Required for Buildah to build images without rootless setup
+    strategy:
+      matrix:
+        include:
+          - image-name: 'trustee'
+            containerfile-path: 'configs/trustee/containers/trustee.container'
+          - image-name: 'trustee-attester'
+            containerfile-path: 'configs/trustee/containers/trustee-attester.container'
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,20 +32,20 @@ jobs:
           dnf install -y buildah git
           dnf clean all
 
-      - name: Set image name and tag
+      - name: Set image name for ${{ matrix.image-name }}
         run: |
           # Fix IMAGE_TAG if other branches are added at the top
           IMAGE_TAG="latest"
-          IMAGE_NAME="quay.io/confidential-clusters/trustee:${IMAGE_TAG}"
+          IMAGE_NAME="quay.io/confidential-clusters/${{ matrix.image-name }}:${IMAGE_TAG}"
           # "pass" IMAGE_NAME to the following steps
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
           echo "Image name is $IMAGE_NAME"
 
-      - name: Build container image
+      - name: Build container image ${{ matrix.image-name }}
         run: |
-          buildah build -t "${{ env.IMAGE_NAME }}" -f configs/trustee/containers/trustee.container .
+          buildah build -t "${{ env.IMAGE_NAME }}" -f ${{ matrix.containerfile-path }} .
 
-      - name: Push container image
+      - name: Push container image ${{ matrix.image-name }}
         run: |
           # skip this step if username or password are not defined
           if [ "X${{ secrets.REGISTRY_USERNAME }}" == "X" \
