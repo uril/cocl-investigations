@@ -51,7 +51,7 @@ jobs:
           # skip in forks too
           if [ "X${{ secrets.REGISTRY_USERNAME }}" == "X" -o \
                "X${{ secrets.REGISTRY_PASSWORD }}" == "X" -o \
-               "${{ github.repository_owner }}" != "confidential-containers" ];
+               "${{ github.repository_owner }}" != "uril" ];
           then
               echo "skipping buildah push"
               exit 0
