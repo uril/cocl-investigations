@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - test_build_trustee_containers_with_redhat
     paths:
       - 'configs/trustee/containers/trustee-attester.container'
       - '.github/workflows/build-trustee-attester-image.yml'
@@ -48,7 +49,7 @@ jobs:
 
       - name: Push to Container Registry
         uses: redhat-actions/push-to-registry@v2
-        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && github.repository_owner == 'confidential-clusters'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.repository_owner == 'uril'
         with:
           image: ${{ steps.build-image.outputs.image }}
           tags: ${{ steps.build-image.outputs.tags }}
