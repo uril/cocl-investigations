@@ -8,7 +8,7 @@ RUN dnf install -y git tss2-devel tpm2-tss-devel cargo openssl-devel perl
 
 RUN cd /usr/src/ && \
     git clone https://github.com/confidential-containers/guest-components.git && \
-    cd guest-components && git checkout ${COMMIT}
+    cd guest-components && git checkout ${COMMIT} && echo "checkedout"
 
 RUN cd /usr/src/guest-components && \
     cargo build -p kbs_protocol --bin trustee-attester --no-default-features \
