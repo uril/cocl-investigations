@@ -8,7 +8,7 @@ RUN dnf install -y perl clang make git \
       tss2-devel tpm2-tss-devel \
       protobuf-compiler cargo \
       tdx-attest-devel sgx-devel \
-    && dnf clean all
+    && dnf clean all && echo hello
 
 RUN cd /usr/src/ && \
     git clone https://github.com/confidential-containers/trustee.git && \
